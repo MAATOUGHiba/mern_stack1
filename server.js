@@ -1,97 +1,82 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
+const express = require("express");
 
-// 1. Activer le décodage du corps JSON
+const app = express();
+
 app.use(express.json());
 
-// 2. Middleware pour afficher les requêtes dans la console
-app.use((req, res, next) => {
-  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.originalUrl}`);
-  next(); // Toujours appeler next() pour continuer !
-});
+const PORT = 3000;
 
-// Liste d'articles stockée en mémoire
-const articles = [
-  { id: 1, title: 'Introduction a la Stack MERN', author: 'Admin' },
-  { id: 2, title: 'Comprendre l\'Asynchronisme', author: 'Admin' }
-];
-
-// Route GET racine
-app.get('/', (req, res) => {
-  res.status(200).send('<h1>API Blog MERN operationnelle</h1>');
-});
-
-// Route GET : Consulter tous les articles
-app.get('/api/articles', (req, res) => {
-  res.status(200).json({
-    total: articles.length,
-    articles
-  });
-});
-
-// Route POST : Ajouter un nouvel article
-app.post('/api/articles', (req, res) => {
-  const { title, author = 'Anonyme' } = req.body;
-
-  if (!title) {
-    return res.status(400).json({
-      error: 'Le titre de l\'article est obligatoire.'
+app.get("/", (req, res) => {
+    res.json({
+        message: "Bonjour, je suis l'API du blog"
     });
-  }
-
-  const newArticle = {
-    id: Date.now(),
-    title,
-    author
-  };
-
-  articles.push(newArticle);
-
-  return res.status(201).json({
-    message: 'Article cree avec succes !',
-    article: newArticle
-  });
-});
-
-
-app.get('/about', (req, res) => {
-  res.status(200).json({
-    application: 'API Blog MERN',
-    institution: 'École Polytechnique de Sousse',
-    version: '1.0.0'
-  });
 });
 
 const users = [
-  { nom: 'Ali', email: 'ali@polytechnicien.tn' },
-  { nom: 'Aya', email: 'aya@polytechnicien.tn' },
-  { nom: 'Karim', email: 'karim@polytechnicien.tn' }
+    {
+        id: 1,
+        name: "Aya",
+        email: "aya@example.com"
+    },
+    {
+        id: 2,
+        name: "Omar",
+        email: "omar@example.com"
+    },
+    {
+        id: 3,
+        name: "Youssef",
+        email: "youssef@example.com"
+    }
 ];
 
-app.get('/api/users', (req, res) => {
-  res.status(200).json({
-    total: users.length,
-    users
-  });
+app.get("/api/users", (req, res) => {
+    const { name } = req.query;
+
+    if (name) {
+        const filteredUsers = users.filter(u => u.name === name);
+        return res.json(filteredUsers);
+    }
+
+    res.json(users);
+});
+app.get("/api/users/:id", (req, res) => {
+    const id = Number(req.params.id);
+
+    const user = users.find(u => u.id === id);
+
+    if (!user) {
+        return res.status(404).json({
+            error: `Utilisateur ${id} introuvable`
+        });
+    }
+
+    res.json(user);
 });
 
 
-app.post('/contact', (req, res) => {
-  const { email, message } = req.body;
-
-  if (!email || !message) {
-    return res.status(400).json({
-      error: 'Les champs email et message sont obligatoires.'
+app.get("/about", (req, res) => {
+    res.json({
+        app: "Mon API Blog",
+        student: "MAATOUG Hiba",
+        version: "1.0.0"
     });
-  }
-
-  return res.status(200).json({
-    message: 'Message recu avec succes !'
-  });
 });
 
+app.post("/contact", (req, res) => {
+    const { email, message } = req.body;
+
+    if (!email || !message) {
+        return res.status(400).json({
+            error: "Email et message sont obligatoires"
+        });
+    }
+
+    res.status(200).json({
+        message: "Merci, votre message a bien été reçu"
+    });
+});
 
 app.listen(PORT, () => {
-  console.log(`Serveur disponible sur http://localhost:${PORT}`);
+    console.log(`Serveur disponible sur http://localhost:${PORT}`);
 });
