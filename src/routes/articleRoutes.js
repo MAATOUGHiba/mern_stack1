@@ -1,12 +1,17 @@
 
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 const articleController = require('../controllers/articleController');
-router.get("/", articleController.getAllArticles);
-router.get("/:id", articleController.getArticleById);
-router.post("/", articleController.createArticle);
-router.put("/:id", articleController.updateArticle);
-router.delete("/:id", articleController.deleteArticle);
+const { protect } = require('../middlewares/authMiddleware');
+
+// Consultation publique
+router.get('/', articleController.getAllArticles);
+router.get('/:id', articleController.getArticleById);
+
+// Opérations protégées par JWT
+router.post('/', protect, articleController.createArticle);
+router.put('/:id', protect, articleController.updateArticle);
+router.delete('/:id', protect, articleController.deleteArticle);
 
 module.exports = router;
