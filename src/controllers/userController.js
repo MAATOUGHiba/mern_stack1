@@ -124,6 +124,47 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// PUT /api/users/update-password (Mise à jour sécurisée du mot de passe)
+const updatePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        message: 'Ancien et nouveau mot de passe requis'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'Utilisateur introuvable'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: 'Ancien mot de passe incorrect'
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Mot de passe mis à jour avec succès'
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: 'Erreur serveur'
+    });
+  }
+};
+
 
 const getAllUsers = async (req, res) => {
   try {
@@ -141,5 +182,6 @@ module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
+  updatePassword,
   getAllUsers
 };

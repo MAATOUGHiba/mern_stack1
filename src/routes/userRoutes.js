@@ -4,6 +4,7 @@ const {
   registerUser,
   loginUser,
   getUserProfile,
+  updatePassword,
   getAllUsers
 } = require('../controllers/userController');
 const {
@@ -18,6 +19,7 @@ router.post('/login', loginUser);
 
 // Route privée protégée par un token JWT
 router.get('/profile', protect, getUserProfile);
+router.put('/update-password', protect, updatePassword);
 
 // Route réservée aux administrateurs (JWT valide + rôle admin requis)
 router.get('/', protect, adminOnly, getAllUsers);
