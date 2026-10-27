@@ -2,17 +2,14 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
-// 1. Protection des routes privées : vérifie la validité du JWT
 const protect = async (req, res, next) => {
   let token;
 
-  // Vérification de la présence de l'en-tête Authorization avec Bearer
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer ')
   ) {
     try {
-      // Extraction du token après "Bearer"
       token = req.headers.authorization.split(' ')[1];
 
       // Vérification cryptographique de la signature avec le secret
@@ -30,6 +27,12 @@ const protect = async (req, res, next) => {
       // Passage au middleware ou contrôleur suivant
       return next();
     } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          message: 'Votre session a expire, veuillez vous reconnecter'
+        });
+      }
+
       return res.status(401).json({
         message: 'Non autorisé, token invalide ou expiré'
       });

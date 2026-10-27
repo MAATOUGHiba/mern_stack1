@@ -9,7 +9,7 @@ const generateToken = (id, role) => {
     { id, role },
     process.env.JWT_SECRET,
     {
-      expiresIn: '1d'
+      expiresIn: '10s'
     }
   );
 };
