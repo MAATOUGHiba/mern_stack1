@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
-// Utilitaire de génération du token JWT
+
 const generateToken = (id, role) => {
   return jwt.sign(
     { id, role },
@@ -14,10 +14,9 @@ const generateToken = (id, role) => {
   );
 };
 
-// POST /api/users/register (Inscription)
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, age, role } = req.body;
+    const { name, email, password, age } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -33,7 +32,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Hachage sécurisé du mot de passe (salt factor = 10)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -42,7 +40,7 @@ const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       age,
-      role
+      role: 'user'
     });
 
     return res.status(201).json({
@@ -71,7 +69,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// POST /api/users/login (Connexion)
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -90,7 +87,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Comparaison du mot de passe avec le hash enregistré
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -113,7 +109,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// GET /api/users/profile (Profil protégé)
 const getUserProfile = async (req, res) => {
   try {
     return res.status(200).json(req.user);
@@ -124,7 +119,6 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-// PUT /api/users/update-password (Mise à jour sécurisée du mot de passe)
 const updatePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -178,10 +172,46 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const updateUserRole = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'Utilisateur introuvable'
+      });
+    }
+
+    user.role = 'admin';
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Rôle administrateur attribué avec succès',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(400).json({
+        message: 'Identifiant invalide'
+      });
+    }
+
+    return res.status(500).json({
+      message: 'Erreur serveur'
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
   updatePassword,
-  getAllUsers
+  getAllUsers,
+  updateUserRole
 };

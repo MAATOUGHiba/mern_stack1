@@ -1,7 +1,6 @@
 
 const Article = require('../models/articleModel');
 
-// GET /api/articles
 const getAllArticles = async (req, res) => {
   try {
     const articles = await Article.find().populate(
@@ -17,7 +16,18 @@ const getAllArticles = async (req, res) => {
   }
 };
 
-// GET /api/articles/:id
+const getMyArticles = async (req, res) => {
+  try {
+    const articles = await Article.find({ author: req.user._id });
+
+    return res.status(200).json(articles);
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message
+    });
+  }
+};
+
 const getArticleById = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id).populate(
@@ -45,7 +55,6 @@ const getArticleById = async (req, res) => {
   }
 };
 
-// POST /api/articles (Création protégée)
 const createArticle = async (req, res) => {
   try {
     const { title, content } = req.body;
@@ -56,7 +65,6 @@ const createArticle = async (req, res) => {
       });
     }
 
-    // L'auteur est extrait du token vérifié : usurpation impossible !
     const newArticle = await Article.create({
       title,
       content,
@@ -76,7 +84,6 @@ const createArticle = async (req, res) => {
   }
 };
 
-// PUT /api/articles/:id (Modification protégée : auteur ou admin)
 const updateArticle = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
@@ -87,7 +94,6 @@ const updateArticle = async (req, res) => {
       });
     }
 
-    // Vérification des droits de propriété
     if (
       article.author.toString() !== req.user._id.toString() &&
       req.user.role !== 'admin'
@@ -121,7 +127,6 @@ const updateArticle = async (req, res) => {
   }
 };
 
-// DELETE /api/articles/:id (Suppression protégée : auteur ou admin)
 const deleteArticle = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
@@ -132,7 +137,6 @@ const deleteArticle = async (req, res) => {
       });
     }
 
-    // Vérification des droits de propriété
     if (
       article.author.toString() !== req.user._id.toString() &&
       req.user.role !== 'admin'
@@ -163,6 +167,7 @@ const deleteArticle = async (req, res) => {
 
 module.exports = {
   getAllArticles,
+  getMyArticles,
   getArticleById,
   createArticle,
   updateArticle,
